@@ -1,4 +1,4 @@
--- EON VISUAL v14 FIXED
+-- EON VISUAL v15
 local Players=game:GetService("Players")
 local TS=game:GetService("TweenService")
 local Lighting=game:GetService("Lighting")
@@ -6,29 +6,31 @@ local UIS=game:GetService("UserInputService")
 local CG=game:GetService("CoreGui")
 local HS=game:GetService("HttpService")
 local SS=game:GetService("SoundService")
-local RunS=game:GetService("RunService")
 local LP=Players.LocalPlayer
 
--- АГРЕССИВНАЯ ОЧИСТКА ВСЕГО
+-- АГРЕССИВНАЯ ОЧИСТКА: убивает ВСЕ гуи по подстроке
 pcall(function()
-    local names={"EonKey","EonMain","EonCursor","EonPick","EonHUD","EonVisual","CheonKey","CheonMain","CheonCursor"}
-    for _,n in ipairs(names) do
-        if CG:FindFirstChild(n) then CG[n]:Destroy() end
-    end
-    local pg=LP:FindFirstChild("PlayerGui")
-    if pg then
-        for _,n in ipairs(names) do
-            if pg:FindFirstChild(n) then pg[n]:Destroy() end
+    local function wipe(parent)
+        if not parent then return end
+        for _,g in ipairs(parent:GetChildren()) do
+            if g:IsA("ScreenGui") then
+                local n = g.Name:lower()
+                if n:find("eon") or n:find("cheon") or n:find("hub") then
+                    g:Destroy()
+                end
+            end
         end
     end
+    wipe(CG)
+    wipe(LP:FindFirstChild("PlayerGui"))
     for _,v in ipairs(Lighting:GetChildren()) do
-        if v.Name:sub(1,3)=="Eon" then v:Destroy() end
+        if v.Name:sub(1,3)=="Eon" or v.Name:sub(1,5)=="Cheon" then v:Destroy() end
     end
     for _,v in ipairs(workspace:GetChildren()) do
-        if v.Name=="EonWea" then v:Destroy() end
+        if v.Name=="EonWea" or v.Name=="CheonWea" then v:Destroy() end
     end
 end)
-task.wait(0.3)
+task.wait(0.4)
 
 local FB="https://cheon-keys-default-rtdb.firebaseio.com"
 local KP="used_keys"
@@ -93,7 +95,6 @@ local TR={
         hFPS="FPS",hPing="Ping",hClock="🕐 Часы",hWM="💧 Watermark",
         hCoord="📍 Координаты",hSpeed="🏃 Скорость",
         oVig="🎭 Виньетка",oRGB="🌈 RGB рамка",oScan="📺 Полосы",
-        oSnow="❄ Снег",oStar="⭐ Звёзды",oFly="✨ Светлячки",
         shDot="Точка",shCH="Прицел",shRing="Кольцо",shDiam="Ромб",
         shStar="Звезда",shArrow="Стрелка",shTarg="Мишень",shBr="Скобки",
         shHeart="❤ Сердце",shLight="⚡ Молния",
@@ -121,8 +122,7 @@ local TR={
         cw="🌍 World",cv="✨ Visuals",cp="👤 Player",cs="🖥 Screen",
         cc="🎯 Cursor",csn="🔊 Sound",csub="⭐ Sub",cst="⚙ Settings",
         sSky="SKY",sWea="WEATHER",sTim="TIME",sLig="LIGHTING",
-        sCf="CHAR FX",sCz="SIZE",sCc="BODY COLOR",
-        sHUD="HUD",sOv="OVERLAYS",
+        sCf="CHAR FX",sCz="SIZE",sCc="BODY COLOR",sHUD="HUD",sOv="OVERLAYS",
         sSh="SHAPE",sCo="COLOR",sSi="SIZE",sFx="FX",
         sMus="MUSIC",sSfx="SFX",sLan="LANG",sRes="RESET",
         sky_space="Space",sky_sunset="Sunset",sky_night="Night",sky_dawn="Dawn",
@@ -141,7 +141,6 @@ local TR={
         hFPS="FPS",hPing="Ping",hClock="🕐 Clock",hWM="💧 WM",
         hCoord="📍 Coords",hSpeed="🏃 Speed",
         oVig="🎭 Vignette",oRGB="🌈 RGB",oScan="📺 Scan",
-        oSnow="❄ Snow",oStar="⭐ Stars",oFly="✨ Fly",
         shDot="Dot",shCH="Cross",shRing="Ring",shDiam="Diamond",
         shStar="Star",shArrow="Arrow",shTarg="Target",shBr="Brackets",
         shHeart="❤ Heart",shLight="⚡ Bolt",
@@ -208,7 +207,7 @@ local subs={}
 
 -- KEY GUI
 local KG=Instance.new("ScreenGui")
-KG.Name="EonKey"; KG.ResetOnSpawn=false; KG.IgnoreGuiInset=true; KG.DisplayOrder=2147483640
+KG.Name="EonKeyGui"; KG.ResetOnSpawn=false; KG.IgnoreGuiInset=true; KG.DisplayOrder=2147483640
 pcall(function() KG.Parent=CG end)
 if not KG.Parent then KG.Parent=LP:WaitForChild("PlayerGui") end
 
@@ -314,7 +313,7 @@ KI.FocusLost:Connect(function(e) if e then submitKey() end end)
 startMain=function()
     if not sDev then
         local PG=Instance.new("ScreenGui")
-        PG.Name="EonPick"; PG.ResetOnSpawn=false; PG.IgnoreGuiInset=true; PG.DisplayOrder=2147483641
+        PG.Name="EonPickGui"; PG.ResetOnSpawn=false; PG.IgnoreGuiInset=true; PG.DisplayOrder=2147483641
         pcall(function() PG.Parent=CG end)
         if not PG.Parent then PG.Parent=LP:WaitForChild("PlayerGui") end
         local PBg=Instance.new("Frame")
@@ -380,36 +379,111 @@ startMain=function()
     end
 
     local LG=Instance.new("ScreenGui")
-    LG.Name="EonMain"; LG.ResetOnSpawn=false; LG.IgnoreGuiInset=true; LG.DisplayOrder=999990
+    LG.Name="EonMainGui"; LG.ResetOnSpawn=false; LG.IgnoreGuiInset=true; LG.DisplayOrder=999990
     pcall(function() LG.Parent=CG end)
     if not LG.Parent then LG.Parent=LP:WaitForChild("PlayerGui") end
 
+    -- ЗАГРУЗКА С ПОЛОСКОЙ
     local LS=Instance.new("Frame")
     LS.Size=UDim2.new(1,0,1,0); LS.BackgroundColor3=Color3.fromRGB(8,8,12)
     LS.BorderSizePixel=0; LS.ZIndex=999; LS.Parent=LG
+
     local LL=Instance.new("TextLabel")
-    LL.Size=UDim2.new(0,700,0,110); LL.Position=UDim2.new(0.5,-350,0.5,-100)
+    LL.Size=UDim2.new(0,700,0,110); LL.Position=UDim2.new(0.5,-350,0.5,-120)
     LL.BackgroundTransparency=1; LL.Text="EON"; LL.TextColor3=C.wh
     LL.Font=Enum.Font.GothamBlack; LL.TextSize=110; LL.ZIndex=1001; LL.Parent=LS
     local LLG=Instance.new("UIGradient")
     LLG.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,C.wh),ColorSequenceKeypoint.new(0.5,C.ac),ColorSequenceKeypoint.new(1,C.ac2)})
     LLG.Parent=LL
+
     local LSb=Instance.new("TextLabel")
-    LSb.Size=UDim2.new(0,700,0,24); LSb.Position=UDim2.new(0.5,-350,0.5,25)
-    LSb.BackgroundTransparency=1; LSb.Text="MEGA EDITION · v14"
+    LSb.Size=UDim2.new(0,700,0,24); LSb.Position=UDim2.new(0.5,-350,0.5,0)
+    LSb.BackgroundTransparency=1; LSb.Text="P R E M I U M   V I S U A L S   ·   v15"
     LSb.TextColor3=C.dim; LSb.Font=Enum.Font.Gotham; LSb.TextSize=11; LSb.ZIndex=1001; LSb.Parent=LS
-    task.wait(1.5)
-    LS:Destroy()
+
+    -- ПОЛОСКА ЗАГРУЗКИ
+    local LBarWrap=Instance.new("Frame")
+    LBarWrap.Size=UDim2.new(0,440,0,4); LBarWrap.Position=UDim2.new(0.5,-220,0.5,55)
+    LBarWrap.BackgroundColor3=Color3.fromRGB(28,28,34); LBarWrap.BorderSizePixel=0
+    LBarWrap.ZIndex=1001; LBarWrap.Parent=LS
+    local LBWC=Instance.new("UICorner"); LBWC.CornerRadius=UDim.new(1,0); LBWC.Parent=LBarWrap
+
+    local LFill=Instance.new("Frame")
+    LFill.Size=UDim2.new(0,0,1,0); LFill.BackgroundColor3=C.ac
+    LFill.BorderSizePixel=0; LFill.ZIndex=1002; LFill.Parent=LBarWrap
+    local LFC=Instance.new("UICorner"); LFC.CornerRadius=UDim.new(1,0); LFC.Parent=LFill
+    local LFG=Instance.new("UIGradient")
+    LFG.Color=ColorSequence.new({
+        ColorSequenceKeypoint.new(0,C.ac),
+        ColorSequenceKeypoint.new(0.5,C.ac2),
+        ColorSequenceKeypoint.new(1,C.ac3),
+    })
+    LFG.Parent=LFill
+
+    local LStatus=Instance.new("TextLabel")
+    LStatus.Size=UDim2.new(0,700,0,18); LStatus.Position=UDim2.new(0.5,-350,0.5,80)
+    LStatus.BackgroundTransparency=1; LStatus.Text="Инициализация..."
+    LStatus.TextColor3=C.dim; LStatus.Font=Enum.Font.Gotham; LStatus.TextSize=11
+    LStatus.ZIndex=1001; LStatus.Parent=LS
+
+    local LPerc=Instance.new("TextLabel")
+    LPerc.Size=UDim2.new(0,80,0,20); LPerc.Position=UDim2.new(0.5,240,0.5,55)
+    LPerc.BackgroundTransparency=1; LPerc.Text="0%"
+    LPerc.TextColor3=C.dim; LPerc.Font=Enum.Font.GothamBold; LPerc.TextSize=11
+    LPerc.ZIndex=1001; LPerc.Parent=LS
+
+    -- Анимация загрузки
+    local lDone=false
+    task.spawn(function()
+        local steps={
+            {p=0.25,t="Инициализация..."},
+            {p=0.50,t="Загрузка модулей..."},
+            {p=0.75,t="Применение визуалов..."},
+            {p=1.00,t="Готово"},
+        }
+        for _,s in ipairs(steps) do
+            if lDone then return end
+            TS:Create(LFill,TweenInfo.new(0.35),{Size=UDim2.new(s.p,0,1,0)}):Play()
+            LStatus.Text=s.t
+            -- Анимируем проценты
+            local startP = (LFill.Size.X.Scale)*100
+            local endP = s.p*100
+            task.spawn(function()
+                for i=0,15 do
+                    if lDone then return end
+                    LPerc.Text=math.floor(startP + (endP-startP)*(i/15)).."%"
+                    task.wait(0.02)
+                end
+            end)
+            task.wait(0.45)
+        end
+        task.wait(0.3)
+        lDone=true
+        LStatus.Text="Готово ✓"
+        LStatus.TextColor3=C.suc
+        LPerc.Text="100%"
+        task.wait(0.4)
+        TS:Create(LS,TweenInfo.new(0.5),{BackgroundTransparency=1}):Play()
+        for _,ch in ipairs(LS:GetDescendants()) do
+            if ch:IsA("TextLabel") then
+                pcall(function() TS:Create(ch,TweenInfo.new(0.5),{TextTransparency=1}):Play() end)
+            elseif ch:IsA("GuiObject") then
+                pcall(function() TS:Create(ch,TweenInfo.new(0.5),{BackgroundTransparency=1}):Play() end)
+            end
+        end
+        task.wait(0.6)
+        LS:Destroy()
+    end)
 
     -- HUD GUI (единственный экземпляр)
     local HG=Instance.new("ScreenGui")
-    HG.Name="EonHUD"; HG.ResetOnSpawn=false; HG.IgnoreGuiInset=true; HG.DisplayOrder=999989
+    HG.Name="EonHUDGui"; HG.ResetOnSpawn=false; HG.IgnoreGuiInset=true; HG.DisplayOrder=999989
     pcall(function() HG.Parent=CG end)
     if not HG.Parent then HG.Parent=LP:WaitForChild("PlayerGui") end
 
     -- CURSOR
     local CGui=Instance.new("ScreenGui")
-    CGui.Name="EonCursor"; CGui.ResetOnSpawn=false; CGui.IgnoreGuiInset=true
+    CGui.Name="EonCursorGui"; CGui.ResetOnSpawn=false; CGui.IgnoreGuiInset=true
     CGui.DisplayOrder=2147483647; CGui.Enabled=false
     pcall(function() CGui.Parent=CG end)
     if not CGui.Parent then CGui.Parent=LP:WaitForChild("PlayerGui") end
@@ -558,7 +632,6 @@ startMain=function()
     local MC=Instance.new("UICorner"); MC.CornerRadius=UDim.new(0,14); MC.Parent=Main
     local MS=Instance.new("UIStroke"); MS.Color=C.strH; MS.Thickness=1; MS.Transparency=0.3; MS.Parent=Main
 
-    -- SIDEBAR
     local SB=Instance.new("Frame")
     SB.Size=UDim2.new(0,210,1,0); SB.BackgroundColor3=C.bg2
     SB.BorderSizePixel=0; SB.ZIndex=101; SB.Parent=Main
@@ -595,7 +668,7 @@ startMain=function()
 
     local SV=Instance.new("TextLabel")
     SV.Size=UDim2.new(1,-60,0,14); SV.Position=UDim2.new(0,54,0,32)
-    SV.BackgroundTransparency=1; SV.Text="v14 · "..dType
+    SV.BackgroundTransparency=1; SV.Text="v15 · "..dType
     SV.TextColor3=C.dim2; SV.Font=Enum.Font.Gotham; SV.TextSize=9
     SV.TextXAlignment=Enum.TextXAlignment.Left; SV.ZIndex=103; SV.Parent=SBL
 
@@ -632,7 +705,6 @@ startMain=function()
     UN.TextColor3=C.txt; UN.Font=Enum.Font.GothamBold; UN.TextSize=12
     UN.TextXAlignment=Enum.TextXAlignment.Left; UN.ZIndex=103; UN.Parent=UF
 
-    -- TOPBAR
     local TB=Instance.new("Frame")
     TB.Size=UDim2.new(1,-210,0,60); TB.Position=UDim2.new(0,210,0,0)
     TB.BackgroundColor3=C.bg2; TB.BorderSizePixel=0; TB.Active=true
@@ -689,9 +761,7 @@ startMain=function()
     local CL=Instance.new("UIListLayout")
     CL.Padding=UDim.new(0,6); CL.SortOrder=Enum.SortOrder.LayoutOrder; CL.Parent=CS
 
-    local function upd()
-        CS.CanvasSize=UDim2.new(0,0,0,CL.AbsoluteContentSize.Y+20)
-    end
+    local function upd() CS.CanvasSize=UDim2.new(0,0,0,CL.AbsoluteContentSize.Y+20) end
     local function clr()
         for _,c in ipairs(CS:GetChildren()) do
             if c:IsA("GuiObject") then c:Destroy() end
@@ -799,7 +869,6 @@ startMain=function()
         b.MouseButton1Click:Connect(cb)
     end
 
-    -- Notify
     local tst={}
     local function notify(text)
         local t=Instance.new("Frame")
@@ -833,50 +902,48 @@ startMain=function()
         end)
     end
 
-    -- STATE
     local st={sky=nil,weather=nil,
         fog=false,bloom=false,ccE=false,dof=false,blur=false,sunrays=false,
         cGlow=false,cRGB=false,cTrail=false,cSpark=false,cFire=false,cFroz=false,
         cLight=false,cHeart=false,cNote=false,cFly=false,cHalo=false,cRain=false,
         head="normal",body="normal",bodyCol=nil}
 
-    -- HUD State + элементы
-    local hSt={
-        fps=false,ping=false,clock=false,wm=false,coords=false,speed=false,
-        oVig=false,oRGB=false,oScan=false
-    }
-    local hEl={} -- храним ссылки на элементы HUD
+    local hSt={fps=false,ping=false,clock=false,wm=false,coords=false,speed=false,
+        oVig=false,oRGB=false,oScan=false}
+    local hEl={}
 
     -- HUD updater
+    local frameCount=0
+    local lastTime=tick()
+    local curFPS=60
     task.spawn(function()
         while HG.Parent do
+            frameCount=frameCount+1
+            local now=tick()
+            if now-lastTime>=1 then
+                curFPS=frameCount/(now-lastTime)
+                frameCount=0
+                lastTime=now
+            end
             local ch=LP.Character
             if ch and ch:FindFirstChild("HumanoidRootPart") then
                 local hrp=ch.HumanoidRootPart
-                if hSt.wm and hEl.wm then
-                    hEl.wm.Text="EON VISUAL v14"
-                end
-                if hSt.fps and hEl.fps then
-                    hEl.fps.Text="FPS: "..math.floor(1/dt or 60)
-                end
-                if hSt.clock and hEl.clock then
-                    hEl.clock.Text=os.date("%H:%M:%S")
-                end
+                if hSt.wm and hEl.wm then hEl.wm.Text="EON VISUAL v15" end
+                if hSt.fps and hEl.fps then hEl.fps.Text="FPS: "..math.floor(curFPS) end
+                if hSt.clock and hEl.clock then hEl.clock.Text=os.date("%H:%M:%S") end
                 if hSt.coords and hEl.coords then
                     hEl.coords.Text=string.format("X:%.0f Y:%.0f Z:%.0f",hrp.Position.X,hrp.Position.Y,hrp.Position.Z)
                 end
                 if hSt.speed and hEl.speed then
                     local hum=ch:FindFirstChildOfClass("Humanoid")
-                    if hum then
-                        hEl.speed.Text="Speed: "..math.floor(hum.WalkSpeed)
-                    end
+                    if hum then hEl.speed.Text="Speed: "..math.floor(hum.WalkSpeed) end
                 end
                 if hSt.ping and hEl.ping then
                     local ping=math.floor(LP:GetNetworkPing()*1000)
                     hEl.ping.Text="Ping: "..ping.."ms"
                 end
             end
-            task.wait(0.2)
+            task.wait(0.1)
         end
     end)
 
@@ -1112,8 +1179,7 @@ startMain=function()
     end
     LP.CharacterAdded:Connect(function() task.wait(1) applyCFX() end)
 
-    -- HUD element creation
-    local function createHudEl(id, name, pos, txt)
+    local function createHudEl(id,name,pos,txt)
         if hEl[id] then return end
         local l=Instance.new("TextLabel")
         l.Name=name
@@ -1126,7 +1192,6 @@ startMain=function()
         if id=="wm" then l.TextColor3=C.ac end
         hEl[id]=l
     end
-
     local function removeHudEl(id)
         if hEl[id] then
             pcall(function() hEl[id]:Destroy() end)
@@ -1163,8 +1228,7 @@ startMain=function()
                 mkTog(g1,tr(s.k),st.sky==s.id,function(on)
                     if on then
                         applySky(s.id); st.sky=s.id
-                        notify("Небо: "..tr(s.k))
-                        render()
+                        notify("Небо: "..tr(s.k)); render()
                     else
                         if st.sky==s.id then
                             for _,v in ipairs(Lighting:GetChildren()) do
@@ -1281,7 +1345,7 @@ startMain=function()
                 {k="hFPS",id="fps",name="EonFPS",pos=UDim2.new(0,20,0,50),txt="FPS: 60"},
                 {k="hPing",id="ping",name="EonPing",pos=UDim2.new(0,20,0,80),txt="Ping: 0"},
                 {k="hClock",id="clock",name="EonClock",pos=UDim2.new(1,-180,0,20),txt="00:00:00"},
-                {k="hWM",id="wm",name="EonWM",pos=UDim2.new(0,20,0,20),txt="EON VISUAL v14"},
+                {k="hWM",id="wm",name="EonWM",pos=UDim2.new(0,20,0,20),txt="EON VISUAL v15"},
                 {k="hCoord",id="coords",name="EonCoords",pos=UDim2.new(0,20,1,-50),txt="X:0 Y:0 Z:0"},
                 {k="hSpeed",id="speed",name="EonSpeed",pos=UDim2.new(0,20,1,-80),txt="Speed: 16"},
             }
@@ -1369,8 +1433,7 @@ startMain=function()
                         cs.shape=s.id; buildS(s.id)
                         cs.enabled=true; CGui.Enabled=true
                         UIS.MouseIconEnabled=false
-                        notify("Форма: "..tr(s.k))
-                        render()
+                        notify("Форма: "..tr(s.k)); render()
                     end
                 end,i)
             end
@@ -1380,8 +1443,7 @@ startMain=function()
                 mkTog(g2,tr(c.k),cs.color==c.c,function(on)
                     if on then
                         cs.color=c.c; cs.rgb=false; buildS(cs.shape)
-                        notify("Цвет: "..tr(c.k))
-                        render()
+                        notify("Цвет: "..tr(c.k)); render()
                     end
                 end,i)
             end
@@ -1396,8 +1458,7 @@ startMain=function()
                 mkTog(g3,tr(s.k),cs.size==s.v,function(on)
                     if on then
                         cs.size=s.v; buildS(cs.shape)
-                        notify("Размер: "..tr(s.k))
-                        render()
+                        notify("Размер: "..tr(s.k)); render()
                     end
                 end,i)
             end
@@ -1515,8 +1576,7 @@ startMain=function()
                     dl.Size=UDim2.new(1,-40,0,20); dl.Position=UDim2.new(0,22,0,110)
                     dl.BackgroundTransparency=1
                     if isL then
-                        dl.Text="∞ "..tr("subF")
-                        dl.TextColor3=C.warn
+                        dl.Text="∞ "..tr("subF"); dl.TextColor3=C.warn
                     else
                         local diff=sub.expiresAt-os.time()
                         if diff<=0 then
@@ -1565,10 +1625,9 @@ startMain=function()
                 end
                 for k in pairs(hSt) do hSt[k]=false end
                 hEl={}
-                notify(tr("reset"))
-                render()
+                notify(tr("reset")); render()
             end,1)
-            mkSec("EON VISUAL v14 · eon.website",40)
+            mkSec("EON VISUAL v15 · eon.website",40)
         end
     end
 
@@ -1590,6 +1649,11 @@ startMain=function()
 
     local function selCat(id)
         act=id; renderSB(); render()
+    end
+
+    -- ЗАЩИТА ОТ ДУБЛИРОВАНИЯ: очищаем всё перед добавлением
+    for _,c in ipairs(NSc:GetChildren()) do
+        if c:IsA("GuiObject") then c:Destroy() end
     end
 
     for i,cat in ipairs(cats) do
@@ -1699,9 +1763,9 @@ startMain=function()
         end)
     end
 
-    task.wait(1)
-    notify("EON VISUAL v14 загружен ✓")
     task.wait(0.5)
+    notify("EON VISUAL v15 загружен ✓")
+    task.wait(0.4)
     doOpen()
-    print("[EON v14] Loaded · "..dType)
+    print("[EON v15] Loaded · "..dType)
 end
