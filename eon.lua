@@ -1,25 +1,38 @@
--- EON VISUAL v13
-local Players = game:GetService("Players")
-local TS = game:GetService("TweenService")
-local Lighting = game:GetService("Lighting")
-local UIS = game:GetService("UserInputService")
-local CG = game:GetService("CoreGui")
-local HS = game:GetService("HttpService")
-local SS = game:GetService("SoundService")
-local LP = Players.LocalPlayer
+-- EON VISUAL v14 FIXED
+local Players=game:GetService("Players")
+local TS=game:GetService("TweenService")
+local Lighting=game:GetService("Lighting")
+local UIS=game:GetService("UserInputService")
+local CG=game:GetService("CoreGui")
+local HS=game:GetService("HttpService")
+local SS=game:GetService("SoundService")
+local RunS=game:GetService("RunService")
+local LP=Players.LocalPlayer
 
+-- АГРЕССИВНАЯ ОЧИСТКА ВСЕГО
 pcall(function()
-    for _, n in ipairs({"EonKey","EonMain","EonCursor","EonPick","EonHUD","CheonKey","CheonMain"}) do
+    local names={"EonKey","EonMain","EonCursor","EonPick","EonHUD","EonVisual","CheonKey","CheonMain","CheonCursor"}
+    for _,n in ipairs(names) do
         if CG:FindFirstChild(n) then CG[n]:Destroy() end
-        local pg = LP:FindFirstChild("PlayerGui")
-        if pg and pg:FindFirstChild(n) then pg[n]:Destroy() end
+    end
+    local pg=LP:FindFirstChild("PlayerGui")
+    if pg then
+        for _,n in ipairs(names) do
+            if pg:FindFirstChild(n) then pg[n]:Destroy() end
+        end
+    end
+    for _,v in ipairs(Lighting:GetChildren()) do
+        if v.Name:sub(1,3)=="Eon" then v:Destroy() end
+    end
+    for _,v in ipairs(workspace:GetChildren()) do
+        if v.Name=="EonWea" then v:Destroy() end
     end
 end)
-task.wait(0.15)
+task.wait(0.3)
 
-local FB = "https://cheon-keys-default-rtdb.firebaseio.com"
-local KP = "used_keys"
-local MK = {
+local FB="https://cheon-keys-default-rtdb.firebaseio.com"
+local KP="used_keys"
+local MK={
     ["eonvisual_3qthfmdnlwfu_7"]={p="EON VISUAL",d=7,l=false},
     ["eonvisual_test_7"]={p="EON VISUAL",d=7,l=false},
     ["eonvisual_test_30"]={p="EON VISUAL",d=30,l=false},
@@ -27,158 +40,157 @@ local MK = {
     ["cheon_v0hftxvllgdf_7"]={p="EON VISUAL",d=7,l=false},
 }
 
-local sDev = nil
+local sDev=nil
 pcall(function()
     if readfile and isfile and isfile("eon_device.txt") then
-        sDev = readfile("eon_device.txt"):gsub("%s","")
+        sDev=readfile("eon_device.txt"):gsub("%s","")
     end
 end)
-local isMob, dType
-if sDev == "PC" then isMob=false; dType="PC"
-elseif sDev == "MOBILE" then isMob=true; dType="MOBILE"
-else isMob = UIS.TouchEnabled and not UIS.KeyboardEnabled; dType = isMob and "MOBILE" or "PC" end
+local isMob,dType
+if sDev=="PC" then isMob=false; dType="PC"
+elseif sDev=="MOBILE" then isMob=true; dType="MOBILE"
+else isMob=UIS.TouchEnabled and not UIS.KeyboardEnabled; dType=isMob and "MOBILE" or "PC" end
 
-local C = {
-    bg=Color3.fromRGB(11,11,15), bg2=Color3.fromRGB(16,16,21), bg3=Color3.fromRGB(22,22,28),
-    row=Color3.fromRGB(26,26,32), rowH=Color3.fromRGB(38,38,46), sl=Color3.fromRGB(55,55,65),
-    txt=Color3.fromRGB(242,242,248), dim=Color3.fromRGB(150,150,162), dim2=Color3.fromRGB(95,95,108),
-    str=Color3.fromRGB(44,44,52), strH=Color3.fromRGB(78,78,90),
-    ac=Color3.fromRGB(110,150,255), ac2=Color3.fromRGB(170,110,255), ac3=Color3.fromRGB(255,110,190),
-    wh=Color3.fromRGB(252,252,255), suc=Color3.fromRGB(85,215,135),
-    warn=Color3.fromRGB(252,195,85), dan=Color3.fromRGB(240,95,95),
+local C={
+    bg=Color3.fromRGB(11,11,15),bg2=Color3.fromRGB(16,16,21),bg3=Color3.fromRGB(22,22,28),
+    row=Color3.fromRGB(26,26,32),rowH=Color3.fromRGB(38,38,46),sl=Color3.fromRGB(55,55,65),
+    txt=Color3.fromRGB(242,242,248),dim=Color3.fromRGB(150,150,162),dim2=Color3.fromRGB(95,95,108),
+    str=Color3.fromRGB(44,44,52),strH=Color3.fromRGB(78,78,90),
+    ac=Color3.fromRGB(110,150,255),ac2=Color3.fromRGB(170,110,255),ac3=Color3.fromRGB(255,110,190),
+    wh=Color3.fromRGB(252,252,255),suc=Color3.fromRGB(85,215,135),
+    warn=Color3.fromRGB(252,195,85),dan=Color3.fromRGB(240,95,95),
 }
 
-local T = {
-    ru = {
-        kt="ВВЕДИТЕ КЛЮЧ", kd="Ключ доступа к EON VISUAL", kp="eonVISUAL_xxxxxxxxxxxx_30",
-        kb="ПРОВЕРИТЬ", kc="Проверка...", kok="Ключ активирован", kno="Неверный ключ",
-        kus="Ключ использован", ker="Ошибка", kex="Подписка истекла", kbu="eon.website",
-        pt="ВЫБЕРИ УСТРОЙСТВО", pd="От этого зависит способ открытия",
-        ppc="ПК", ppcs="Клавиша INSERT", pm="Телефон", pms="Кнопка Е снизу",
-        pa="Авто", pas="Определить само",
-        cw="🌍 Мир", cv="✨ Визуалы", cp="👤 Персонаж", cs="🖥 Экран",
-        cc="🎯 Курсор", csn="🔊 Звук", csub="⭐ Подписка", cst="⚙ Настройки",
-        sSky="НЕБО", sWea="ПОГОДА", sTim="ВРЕМЯ", sLig="ОСВЕЩЕНИЕ",
-        sCf="ЭФФЕКТЫ ПЕРСОНАЖА", sCz="РАЗМЕР", sCc="ЦВЕТ ТЕЛА",
-        sHUD="ИНТЕРФЕЙС", sOv="ОВЕРЛЕИ",
-        sSh="ФОРМА", sCo="ЦВЕТ", sSi="РАЗМЕР", sFx="ЭФФЕКТЫ",
-        sMus="МУЗЫКА", sSfx="ЗВУКИ", sLan="ЯЗЫК", sRes="СБРОС",
-        sky_space="Космос", sky_sunset="Закат", sky_night="Ночь", sky_dawn="Рассвет",
-        sky_storm="Гроза", sky_clear="День", sky_nebula="Туманность",
-        sky_cartoon="Мультяшное", sky_alien="Чужое", sky_off="Убрать",
-        wRain="🌧 Дождь", wSnow="❄ Снег", wStorm="⛈ Гроза", wOff="❌ Убрать",
-        tDay="☀ День", tEve="🌆 Вечер", tNight="🌙 Ночь", tMorn="🌅 Утро", tReal="⏰ Реальное",
-        fog="Туман", bloom="Bloom", cc="Цветокоррекция", dof="Глубина резкости",
-        blur="Размытие", sunrays="Лучи", rgbF="🌈 RGB фильтр",
-        cGlow="Свечение", cRGB="RGB аура", cTrail="Трейл", cSpark="Искры",
-        cFire="🔥 Огонь", cFroz="❄ Лёд", cLight="⚡ Молния", cHeart="❤ Сердечки",
-        cNote="♪ Ноты", cFly="✨ Светлячки", cHalo="😇 Ореол", cRain="🌈 Радужный",
-        hBig="🗣 Голова ×2", hNorm="🗣 Обычная", hSmall="🗣 Голова ×0.5",
-        bNorm="💪 Обычное", bWide="💪 Широкое", bTall="💪 Высокое", bSmall="💪 Маленькое",
-        colR="🔴 Красный", colB="🔵 Синий", colG="🟢 Зелёный", colY="🟡 Жёлтый",
-        colP="🟣 Фиолетовый", colW="⚪ Белый", colRGB="🌈 RGB", colReset="↺ Сброс",
-        hFPS="FPS", hPing="Ping", hClock="🕐 Часы", hWM="💧 Watermark",
-        hCoord="📍 Координаты", hSpeed="🏃 Скорость",
-        oVig="🎭 Виньетка", oRGB="🌈 RGB рамка", oScan="📺 Полосы",
-        oSnow="❄ Снег", oStar="⭐ Звёзды", oFly="✨ Светлячки",
-        shDot="Точка", shCH="Прицел", shRing="Кольцо", shDiam="Ромб",
-        shStar="Звезда", shArrow="Стрелка", shTarg="Мишень", shBr="Скобки",
-        shHeart="❤ Сердце", shLight="⚡ Молния",
-        coW="Белый", coB="Чёрный", coR="Красный", coC="Голубой",
-        coG="Зелёный", coGo="Золотой", coP="Розовый", coPu="Фиолетовый",
-        coRGB="🌈 RGB", cOff="Выключить", cOn="Включить",
-        siS="Малый", siM="Средний", siL="Большой", siH="Огромный",
-        cTrail="Трейл", cPulse="Пульсация", cText="Текст",
-        mE="🎵 Epic", mC="🎵 Chill", mN="❌ Выкл",
-        sfxC="Клик", sfxH="Наведение",
-        reset="🔄 Сбросить всё", langRu="🇷🇺 Русский", langEn="🇺🇸 English",
-        subA="АКТИВНА", subE="ИСТЕКЛА", subL="НАВСЕГДА",
-        subP="Продукт", subK="Ключ", subB="Куплено", subX="Истекает",
-        subN="Нет подписки", subND="Введи ключ",
-        subS="МОИ ПОДПИСКИ", subF="Бессрочно",
-        left="Осталось: ", days=" дней",
+local TR={
+    ru={
+        kt="ВВЕДИТЕ КЛЮЧ",kd="Ключ доступа к EON VISUAL",kp="eonVISUAL_xxxxxxxxxxxx_30",
+        kb="ПРОВЕРИТЬ",kc="Проверка...",kok="Ключ активирован",kno="Неверный ключ",
+        kus="Ключ использован",ker="Ошибка",kex="Подписка истекла",kbu="eon.website",
+        pt="ВЫБЕРИ УСТРОЙСТВО",pd="От этого зависит способ открытия",
+        ppc="ПК",ppcs="Клавиша INSERT",pm="Телефон",pms="Кнопка Е снизу",
+        pa="Авто",pas="Определить само",
+        cw="🌍 Мир",cv="✨ Визуалы",cp="👤 Персонаж",cs="🖥 Экран",
+        cc="🎯 Курсор",csn="🔊 Звук",csub="⭐ Подписка",cst="⚙ Настройки",
+        sSky="НЕБО",sWea="ПОГОДА",sTim="ВРЕМЯ",sLig="ОСВЕЩЕНИЕ",
+        sCf="ЭФФЕКТЫ ПЕРСОНАЖА",sCz="РАЗМЕР",sCc="ЦВЕТ ТЕЛА",
+        sHUD="ИНТЕРФЕЙС",sOv="ОВЕРЛЕИ",
+        sSh="ФОРМА",sCo="ЦВЕТ",sSi="РАЗМЕР",sFx="ЭФФЕКТЫ",
+        sMus="МУЗЫКА",sSfx="ЗВУКИ",sLan="ЯЗЫК",sRes="СБРОС",
+        sky_space="Космос",sky_sunset="Закат",sky_night="Ночь",sky_dawn="Рассвет",
+        sky_storm="Гроза",sky_clear="День",sky_nebula="Туманность",
+        sky_cartoon="Мультяшное",sky_alien="Чужое",sky_off="Убрать",
+        wRain="🌧 Дождь",wSnow="❄ Снег",wStorm="⛈ Гроза",wOff="❌ Убрать",
+        tDay="☀ День",tEve="🌆 Вечер",tNight="🌙 Ночь",tMorn="🌅 Утро",tReal="⏰ Реальное",
+        fog="Туман",bloom="Bloom",ccE="Цветокоррекция",dof="Глубина резкости",
+        blur="Размытие",sunrays="Лучи",
+        cGlow="Свечение",cRGB="RGB аура",cTrail="Трейл",cSpark="Искры",
+        cFire="🔥 Огонь",cFroz="❄ Лёд",cLight="⚡ Молния",cHeart="❤ Сердечки",
+        cNote="♪ Ноты",cFly="✨ Светлячки",cHalo="😇 Ореол",cRain="🌈 Радужный",
+        hBig="🗣 Голова ×2",hNorm="🗣 Обычная",hSmall="🗣 Голова ×0.5",
+        bNorm="💪 Обычное",bWide="💪 Широкое",bTall="💪 Высокое",bSmall="💪 Маленькое",
+        colR="🔴 Красный",colB="🔵 Синий",colG="🟢 Зелёный",colY="🟡 Жёлтый",
+        colP="🟣 Фиолетовый",colW="⚪ Белый",colReset="↺ Сброс",
+        hFPS="FPS",hPing="Ping",hClock="🕐 Часы",hWM="💧 Watermark",
+        hCoord="📍 Координаты",hSpeed="🏃 Скорость",
+        oVig="🎭 Виньетка",oRGB="🌈 RGB рамка",oScan="📺 Полосы",
+        oSnow="❄ Снег",oStar="⭐ Звёзды",oFly="✨ Светлячки",
+        shDot="Точка",shCH="Прицел",shRing="Кольцо",shDiam="Ромб",
+        shStar="Звезда",shArrow="Стрелка",shTarg="Мишень",shBr="Скобки",
+        shHeart="❤ Сердце",shLight="⚡ Молния",
+        coW="Белый",coB="Чёрный",coR="Красный",coC="Голубой",
+        coG="Зелёный",coGo="Золотой",coP="Розовый",coPu="Фиолетовый",
+        coRGB="🌈 RGB",cOff="Выключить",cOn="Включить",
+        siS="Малый",siM="Средний",siL="Большой",siH="Огромный",
+        cTrail="Трейл",cPulse="Пульсация",
+        mE="🎵 Epic",mC="🎵 Chill",mN="❌ Выкл",
+        sfxC="Клик",sfxH="Наведение",
+        reset="🔄 Сбросить всё",langRu="🇷🇺 Русский",langEn="🇺🇸 English",
+        subA="АКТИВНА",subE="ИСТЕКЛА",subL="НАВСЕГДА",
+        subK="Ключ",subB="Куплено",subX="Истекает",
+        subN="Нет подписки",subND="Введи ключ",
+        subS="МОИ ПОДПИСКИ",subF="Бессрочно",
+        left="Осталось: ",days=" дней",
     },
-    en = {
-        kt="ENTER KEY", kd="Access key", kp="eonVISUAL_xxxxxxxxxxxx_30",
-        kb="VERIFY", kc="Checking...", kok="Activated", kno="Invalid",
-        kus="Used", ker="Error", kex="Expired", kbu="eon.website",
-        pt="SELECT DEVICE", pd="Affects opening",
-        ppc="PC", ppcs="INSERT key", pm="Mobile", pms="E button",
-        pa="Auto", pas="Auto-detect",
-        cw="🌍 World", cv="✨ Visuals", cp="👤 Player", cs="🖥 Screen",
-        cc="🎯 Cursor", csn="🔊 Sound", csub="⭐ Sub", cst="⚙ Settings",
-        sSky="SKY", sWea="WEATHER", sTim="TIME", sLig="LIGHTING",
-        sCf="CHARACTER FX", sCz="SIZE", sCc="BODY COLOR",
-        sHUD="HUD", sOv="OVERLAYS",
-        sSh="SHAPE", sCo="COLOR", sSi="SIZE", sFx="FX",
-        sMus="MUSIC", sSfx="SFX", sLan="LANG", sRes="RESET",
-        sky_space="Space", sky_sunset="Sunset", sky_night="Night", sky_dawn="Dawn",
-        sky_storm="Storm", sky_clear="Day", sky_nebula="Nebula",
-        sky_cartoon="Cartoon", sky_alien="Alien", sky_off="Remove",
-        wRain="🌧 Rain", wSnow="❄ Snow", wStorm="⛈ Storm", wOff="❌ Remove",
-        tDay="☀ Day", tEve="🌆 Evening", tNight="🌙 Night", tMorn="🌅 Morning", tReal="⏰ Real",
-        fog="Fog", bloom="Bloom", cc="CC", dof="DOF",
-        blur="Blur", sunrays="Sun", rgbF="🌈 RGB",
-        cGlow="Glow", cRGB="RGB", cTrail="Trail", cSpark="Sparkles",
-        cFire="🔥 Fire", cFroz="❄ Frozen", cLight="⚡ Lightning", cHeart="❤ Hearts",
-        cNote="♪ Notes", cFly="✨ Fireflies", cHalo="😇 Halo", cRain="🌈 Rainbow",
-        hBig="🗣 Head ×2", hNorm="🗣 Normal", hSmall="🗣 Head ×0.5",
-        bNorm="💪 Normal", bWide="💪 Wide", bTall="💪 Tall", bSmall="💪 Small",
-        colR="🔴 Red", colB="🔵 Blue", colG="🟢 Green", colY="🟡 Yellow",
-        colP="🟣 Purple", colW="⚪ White", colRGB="🌈 RGB", colReset="↺ Reset",
-        hFPS="FPS", hPing="Ping", hClock="🕐 Clock", hWM="💧 WM",
-        hCoord="📍 Coords", hSpeed="🏃 Speed",
-        oVig="🎭 Vignette", oRGB="🌈 RGB border", oScan="📺 Scanlines",
-        oSnow="❄ Snow", oStar="⭐ Stars", oFly="✨ Fireflies",
-        shDot="Dot", shCH="Crosshair", shRing="Ring", shDiam="Diamond",
-        shStar="Star", shArrow="Arrow", shTarg="Target", shBr="Brackets",
-        shHeart="❤ Heart", shLight="⚡ Lightning",
-        coW="White", coB="Black", coR="Red", coC="Cyan",
-        coG="Green", coGo="Gold", coP="Pink", coPu="Purple",
-        coRGB="🌈 RGB", cOff="Disable", cOn="Enable",
-        siS="Small", siM="Medium", siL="Large", siH="Huge",
-        cTrail="Trail", cPulse="Pulse", cText="Text",
-        mE="🎵 Epic", mC="🎵 Chill", mN="❌ Off",
-        sfxC="Click", sfxH="Hover",
-        reset="🔄 Reset", langRu="🇷🇺 Русский", langEn="🇺🇸 English",
-        subA="ACTIVE", subE="EXPIRED", subL="LIFETIME",
-        subP="Product", subK="Key", subB="Bought", subX="Expires",
-        subN="No subscription", subND="Enter key",
-        subS="MY SUBSCRIPTIONS", subF="Forever",
-        left="Left: ", days=" days",
+    en={
+        kt="ENTER KEY",kd="Access key",kp="eonVISUAL_xxxxxxxxxxxx_30",
+        kb="VERIFY",kc="Checking...",kok="Activated",kno="Invalid",
+        kus="Used",ker="Error",kex="Expired",kbu="eon.website",
+        pt="SELECT DEVICE",pd="Affects opening",
+        ppc="PC",ppcs="INSERT key",pm="Mobile",pms="E button",
+        pa="Auto",pas="Auto-detect",
+        cw="🌍 World",cv="✨ Visuals",cp="👤 Player",cs="🖥 Screen",
+        cc="🎯 Cursor",csn="🔊 Sound",csub="⭐ Sub",cst="⚙ Settings",
+        sSky="SKY",sWea="WEATHER",sTim="TIME",sLig="LIGHTING",
+        sCf="CHAR FX",sCz="SIZE",sCc="BODY COLOR",
+        sHUD="HUD",sOv="OVERLAYS",
+        sSh="SHAPE",sCo="COLOR",sSi="SIZE",sFx="FX",
+        sMus="MUSIC",sSfx="SFX",sLan="LANG",sRes="RESET",
+        sky_space="Space",sky_sunset="Sunset",sky_night="Night",sky_dawn="Dawn",
+        sky_storm="Storm",sky_clear="Day",sky_nebula="Nebula",
+        sky_cartoon="Cartoon",sky_alien="Alien",sky_off="Remove",
+        wRain="🌧 Rain",wSnow="❄ Snow",wStorm="⛈ Storm",wOff="❌ Remove",
+        tDay="☀ Day",tEve="🌆 Eve",tNight="🌙 Night",tMorn="🌅 Morn",tReal="⏰ Real",
+        fog="Fog",bloom="Bloom",ccE="CC",dof="DOF",blur="Blur",sunrays="Sun",
+        cGlow="Glow",cRGB="RGB",cTrail="Trail",cSpark="Spark",
+        cFire="🔥 Fire",cFroz="❄ Ice",cLight="⚡ Bolt",cHeart="❤ Heart",
+        cNote="♪ Note",cFly="✨ Fly",cHalo="😇 Halo",cRain="🌈 Rain",
+        hBig="🗣 Head ×2",hNorm="🗣 Normal",hSmall="🗣 ×0.5",
+        bNorm="💪 Normal",bWide="💪 Wide",bTall="💪 Tall",bSmall="💪 Small",
+        colR="🔴 Red",colB="🔵 Blue",colG="🟢 Green",colY="🟡 Yellow",
+        colP="🟣 Purple",colW="⚪ White",colReset="↺ Reset",
+        hFPS="FPS",hPing="Ping",hClock="🕐 Clock",hWM="💧 WM",
+        hCoord="📍 Coords",hSpeed="🏃 Speed",
+        oVig="🎭 Vignette",oRGB="🌈 RGB",oScan="📺 Scan",
+        oSnow="❄ Snow",oStar="⭐ Stars",oFly="✨ Fly",
+        shDot="Dot",shCH="Cross",shRing="Ring",shDiam="Diamond",
+        shStar="Star",shArrow="Arrow",shTarg="Target",shBr="Brackets",
+        shHeart="❤ Heart",shLight="⚡ Bolt",
+        coW="White",coB="Black",coR="Red",coC="Cyan",
+        coG="Green",coGo="Gold",coP="Pink",coPu="Purple",
+        coRGB="🌈 RGB",cOff="Disable",cOn="Enable",
+        siS="Small",siM="Medium",siL="Large",siH="Huge",
+        cTrail="Trail",cPulse="Pulse",
+        mE="🎵 Epic",mC="🎵 Chill",mN="❌ Off",
+        sfxC="Click",sfxH="Hover",
+        reset="🔄 Reset",langRu="🇷🇺 Русский",langEn="🇺🇸 English",
+        subA="ACTIVE",subE="EXPIRED",subL="LIFETIME",
+        subK="Key",subB="Bought",subX="Expires",
+        subN="No sub",subND="Enter key",
+        subS="MY SUBS",subF="Forever",
+        left="Left: ",days=" days",
     }
 }
 local Lang="ru"
-local function tr(k) return T[Lang][k] or k end
+local function tr(k) return TR[Lang][k] or k end
 
 local function parseKey(key)
-    key = key:gsub("%s","")
+    key=key:gsub("%s","")
     if key=="" then return nil end
-    local lower = key:lower()
-    local mk = MK[lower]
+    local lower=key:lower()
+    local mk=MK[lower]
     if mk then return {product=mk.p,days=mk.d,lifetime=mk.l,raw=key,master=true} end
-    local prod, rand, dur = lower:match("^(%a+)_([%a0-9]+)_([%a0-9]+)$")
+    local prod,rand,dur=lower:match("^(%a+)_([%a0-9]+)_([%a0-9]+)$")
     if not prod or not rand or not dur then return nil end
     if #rand<6 then return nil end
     if prod~="cheon" and prod~="eonvisual" then return nil end
-    local lt = (dur=="lifetime")
-    local d = lt and 0 or tonumber(dur)
+    local lt=(dur=="lifetime")
+    local d=lt and 0 or tonumber(dur)
     if not lt and (not d or d<=0) then return nil end
     return {product="EON VISUAL",days=d,lifetime=lt,raw=key,master=false}
 end
 
 local function checkKey(key)
-    local p = parseKey(key)
+    local p=parseKey(key)
     if not p then return false,"invalid",nil end
-    local now = os.time()
+    local now=os.time()
     if p.master then
         return true,"master",{key=p.raw,product=p.product,days=p.days,lifetime=p.lifetime,activatedAt=now,expiresAt=p.lifetime and 0 or (now+p.days*86400)}
     end
-    local safe = p.raw:lower():gsub("[%./%[%]%$#]","_")
-    local url = FB.."/"..KP.."/"..safe..".json"
-    local ok, res = pcall(function() return HS:GetAsync(url) end)
+    local safe=p.raw:lower():gsub("[%./%[%]%$#]","_")
+    local url=FB.."/"..KP.."/"..safe..".json"
+    local ok,res=pcall(function() return HS:GetAsync(url) end)
     if ok and res and res~="" and res~="null" then
-        local ok2, dec = pcall(function() return HS:JSONDecode(res) end)
+        local ok2,dec=pcall(function() return HS:JSONDecode(res) end)
         if ok2 and dec then
             if dec.userId and dec.userId~=LP.UserId then return false,"used",nil end
             if dec.lifetime then return true,"reactivate",dec end
@@ -186,40 +198,38 @@ local function checkKey(key)
             return false,"expired",nil
         end
     end
-    local data = {userId=LP.UserId,username=LP.Name,product=p.product,days=p.days,lifetime=p.lifetime,activatedAt=now,expiresAt=p.lifetime and 0 or (now+p.days*86400),rawKey=p.raw}
+    local data={userId=LP.UserId,username=LP.Name,product=p.product,days=p.days,lifetime=p.lifetime,activatedAt=now,expiresAt=p.lifetime and 0 or (now+p.days*86400),rawKey=p.raw}
     pcall(function() HS:PutAsync(url,HS:JSONEncode(data)) end)
     return true,"new",data
 end
 
 local startMain
-local subs = {}
+local subs={}
 
 -- KEY GUI
-local KG = Instance.new("ScreenGui")
-KG.Name="EonKey"; KG.ResetOnSpawn=false; KG.IgnoreGuiInset=true
-KG.DisplayOrder=2147483640
+local KG=Instance.new("ScreenGui")
+KG.Name="EonKey"; KG.ResetOnSpawn=false; KG.IgnoreGuiInset=true; KG.DisplayOrder=2147483640
 pcall(function() KG.Parent=CG end)
 if not KG.Parent then KG.Parent=LP:WaitForChild("PlayerGui") end
 
-local KBg = Instance.new("Frame")
+local KBg=Instance.new("Frame")
 KBg.Size=UDim2.new(1,0,1,0); KBg.BackgroundColor3=Color3.fromRGB(6,6,10)
 KBg.BackgroundTransparency=0.15; KBg.BorderSizePixel=0; KBg.ZIndex=99990; KBg.Parent=KG
 
-local KBox = Instance.new("Frame")
+local KBox=Instance.new("Frame")
 KBox.Size=UDim2.new(0,460,0,380); KBox.Position=UDim2.new(0.5,-230,0.5,-190)
 KBox.BackgroundColor3=C.bg; KBox.BorderSizePixel=0; KBox.ZIndex=99992; KBox.Parent=KBg
 local KBC=Instance.new("UICorner"); KBC.CornerRadius=UDim.new(0,20); KBC.Parent=KBox
 local KBS1=Instance.new("UIStroke"); KBS1.Color=C.str; KBS1.Thickness=1; KBS1.Parent=KBox
 local KBS2=Instance.new("UIStroke"); KBS2.Color=C.ac; KBS2.Thickness=2; KBS2.Transparency=0.6; KBS2.Parent=KBox
-
 task.spawn(function()
     while KBS2.Parent do
-        KBS2.Color = C.ac:Lerp(C.ac2,(math.sin(tick()*1.2)+1)/2)
+        KBS2.Color=C.ac:Lerp(C.ac2,(math.sin(tick()*1.2)+1)/2)
         task.wait(0.05)
     end
 end)
 
-local ICH = Instance.new("Frame")
+local ICH=Instance.new("Frame")
 ICH.Size=UDim2.new(0,68,0,68); ICH.Position=UDim2.new(0.5,-34,0,30)
 ICH.BackgroundColor3=C.bg3; ICH.BorderSizePixel=0; ICH.ZIndex=99993; ICH.Parent=KBox
 local ICHC=Instance.new("UICorner"); ICHC.CornerRadius=UDim.new(0,16); ICHC.Parent=ICH
@@ -272,24 +282,19 @@ KBu.BackgroundTransparency=1; KBu.Text=tr("kbu"); KBu.TextColor3=C.dim2
 KBu.Font=Enum.Font.Gotham; KBu.TextSize=11; KBu.ZIndex=99993; KBu.Parent=KBox
 
 local function submitKey()
-    local k = KI.Text
+    local k=KI.Text
     if k=="" then KSt.Text=tr("kno"); KSt.TextColor3=C.dan; return end
     KSt.Text=tr("kc"); KSt.TextColor3=C.dim; KB.Text="..."
     task.spawn(function()
-        local ok, v, r, sd = pcall(checkKey,k)
+        local ok,v,r,sd=pcall(checkKey,k)
         task.wait(0.5)
         if ok and v then
-            local p = parseKey(k)
-            table.insert(subs, sd or {key=k,product="EON VISUAL",days=p and p.days or 0,lifetime=p and p.lifetime or false,activatedAt=os.time(),expiresAt=0})
+            local p=parseKey(k)
+            table.insert(subs,sd or {key=k,product="EON VISUAL",days=p and p.days or 0,lifetime=p and p.lifetime or false,activatedAt=os.time(),expiresAt=0})
             KSt.Text="✓ "..tr("kok"); KSt.TextColor3=C.suc
             KB.Text="✓ OK"; KB.BackgroundColor3=C.suc
             task.wait(0.6)
             pcall(function() KG:Destroy() end)
-            pcall(function()
-                if CG:FindFirstChild("EonKey") then CG.EonKey:Destroy() end
-                local pg = LP:FindFirstChild("PlayerGui")
-                if pg and pg:FindFirstChild("EonKey") then pg.EonKey:Destroy() end
-            end)
             task.wait(0.3)
             pcall(startMain)
         else
@@ -306,37 +311,30 @@ KB.MouseButton1Click:Connect(submitKey)
 KI.FocusLost:Connect(function(e) if e then submitKey() end end)
 
 -- MAIN
-startMain = function()
+startMain=function()
     if not sDev then
-        local PG = Instance.new("ScreenGui")
-        PG.Name="EonPick"; PG.ResetOnSpawn=false; PG.IgnoreGuiInset=true
-        PG.DisplayOrder=2147483641
+        local PG=Instance.new("ScreenGui")
+        PG.Name="EonPick"; PG.ResetOnSpawn=false; PG.IgnoreGuiInset=true; PG.DisplayOrder=2147483641
         pcall(function() PG.Parent=CG end)
         if not PG.Parent then PG.Parent=LP:WaitForChild("PlayerGui") end
-
-        local PBg = Instance.new("Frame")
+        local PBg=Instance.new("Frame")
         PBg.Size=UDim2.new(1,0,1,0); PBg.BackgroundColor3=Color3.fromRGB(6,6,10)
         PBg.BackgroundTransparency=0.1; PBg.BorderSizePixel=0; PBg.ZIndex=99990; PBg.Parent=PG
-
-        local PBox = Instance.new("Frame")
+        local PBox=Instance.new("Frame")
         PBox.Size=UDim2.new(0,620,0,380); PBox.Position=UDim2.new(0.5,-310,0.5,-190)
         PBox.BackgroundColor3=C.bg; PBox.BorderSizePixel=0; PBox.ZIndex=99992; PBox.Parent=PBg
         local PBC=Instance.new("UICorner"); PBC.CornerRadius=UDim.new(0,20); PBC.Parent=PBox
         local PBS=Instance.new("UIStroke"); PBS.Color=C.str; PBS.Thickness=1; PBS.Parent=PBox
-        local PBS2=Instance.new("UIStroke"); PBS2.Color=C.ac; PBS2.Thickness=2; PBS2.Transparency=0.6; PBS2.Parent=PBox
-
         local PTitle=Instance.new("TextLabel")
         PTitle.Size=UDim2.new(1,-40,0,30); PTitle.Position=UDim2.new(0,20,0,25)
         PTitle.BackgroundTransparency=1; PTitle.Text=tr("pt"); PTitle.TextColor3=C.wh
         PTitle.Font=Enum.Font.GothamBlack; PTitle.TextSize=20; PTitle.ZIndex=99993; PTitle.Parent=PBox
-
         local PDesc=Instance.new("TextLabel")
         PDesc.Size=UDim2.new(1,-40,0,18); PDesc.Position=UDim2.new(0,20,0,58)
         PDesc.BackgroundTransparency=1; PDesc.Text=tr("pd"); PDesc.TextColor3=C.dim
         PDesc.Font=Enum.Font.Gotham; PDesc.TextSize=12; PDesc.ZIndex=99993; PDesc.Parent=PBox
-
         local done=false
-        local function finish(ch)
+        local function fin(ch)
             if done then return end
             done=true
             if ch=="PC" then isMob=false; dType="PC"
@@ -345,8 +343,7 @@ startMain = function()
             pcall(function() if writefile then writefile("eon_device.txt",ch) end end)
             PG:Destroy()
         end
-
-        local function mkCard(x, ico, ttl, sb, ch)
+        local function mkCard(x,ico,ttl,sb,ch)
             local card=Instance.new("TextButton")
             card.Size=UDim2.new(0,180,0,200); card.Position=UDim2.new(0,x,0,100)
             card.BackgroundColor3=C.bg2; card.BorderSizePixel=0; card.Text=""
@@ -367,33 +364,29 @@ startMain = function()
             sb2.Font=Enum.Font.Gotham; sb2.TextSize=10; sb2.TextWrapped=true
             sb2.TextYAlignment=Enum.TextYAlignment.Top; sb2.ZIndex=99994; sb2.Parent=card
             card.MouseEnter:Connect(function()
-                TS:Create(card, TweenInfo.new(0.2), {BackgroundColor3=C.rowH, Size=UDim2.new(0,184,0,204), Position=UDim2.new(0,x-2,0,98)}):Play()
-                TS:Create(s, TweenInfo.new(0.2), {Color=C.ac, Transparency=0}):Play()
+                TS:Create(card,TweenInfo.new(0.2),{BackgroundColor3=C.rowH}):Play()
+                TS:Create(s,TweenInfo.new(0.2),{Color=C.ac,Transparency=0}):Play()
             end)
             card.MouseLeave:Connect(function()
-                TS:Create(card, TweenInfo.new(0.2), {BackgroundColor3=C.bg2, Size=UDim2.new(0,180,0,200), Position=UDim2.new(0,x,0,100)}):Play()
-                TS:Create(s, TweenInfo.new(0.2), {Color=C.str, Transparency=0}):Play()
+                TS:Create(card,TweenInfo.new(0.2),{BackgroundColor3=C.bg2}):Play()
+                TS:Create(s,TweenInfo.new(0.2),{Color=C.str,Transparency=0}):Play()
             end)
-            card.MouseButton1Click:Connect(function() finish(ch) end)
+            card.MouseButton1Click:Connect(function() fin(ch) end)
         end
-
         mkCard(20,"🖥",tr("ppc"),tr("ppcs"),"PC")
         mkCard(220,"📱",tr("pm"),tr("pms"),"MOBILE")
         mkCard(420,"❓",tr("pa"),tr("pas"),"AUTO")
-
         while not done do task.wait(0.1) end
     end
 
-    local LG = Instance.new("ScreenGui")
-    LG.Name="EonMain"; LG.ResetOnSpawn=false; LG.IgnoreGuiInset=true
-    LG.DisplayOrder=999990
+    local LG=Instance.new("ScreenGui")
+    LG.Name="EonMain"; LG.ResetOnSpawn=false; LG.IgnoreGuiInset=true; LG.DisplayOrder=999990
     pcall(function() LG.Parent=CG end)
     if not LG.Parent then LG.Parent=LP:WaitForChild("PlayerGui") end
 
     local LS=Instance.new("Frame")
     LS.Size=UDim2.new(1,0,1,0); LS.BackgroundColor3=Color3.fromRGB(8,8,12)
     LS.BorderSizePixel=0; LS.ZIndex=999; LS.Parent=LG
-
     local LL=Instance.new("TextLabel")
     LL.Size=UDim2.new(0,700,0,110); LL.Position=UDim2.new(0.5,-350,0.5,-100)
     LL.BackgroundTransparency=1; LL.Text="EON"; LL.TextColor3=C.wh
@@ -401,14 +394,18 @@ startMain = function()
     local LLG=Instance.new("UIGradient")
     LLG.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,C.wh),ColorSequenceKeypoint.new(0.5,C.ac),ColorSequenceKeypoint.new(1,C.ac2)})
     LLG.Parent=LL
-
     local LSb=Instance.new("TextLabel")
     LSb.Size=UDim2.new(0,700,0,24); LSb.Position=UDim2.new(0.5,-350,0.5,25)
-    LSb.BackgroundTransparency=1; LSb.Text="M E G A   E D I T I O N   ·   v13.0"
+    LSb.BackgroundTransparency=1; LSb.Text="MEGA EDITION · v14"
     LSb.TextColor3=C.dim; LSb.Font=Enum.Font.Gotham; LSb.TextSize=11; LSb.ZIndex=1001; LSb.Parent=LS
-
-    task.wait(1.8)
+    task.wait(1.5)
     LS:Destroy()
+
+    -- HUD GUI (единственный экземпляр)
+    local HG=Instance.new("ScreenGui")
+    HG.Name="EonHUD"; HG.ResetOnSpawn=false; HG.IgnoreGuiInset=true; HG.DisplayOrder=999989
+    pcall(function() HG.Parent=CG end)
+    if not HG.Parent then HG.Parent=LP:WaitForChild("PlayerGui") end
 
     -- CURSOR
     local CGui=Instance.new("ScreenGui")
@@ -420,10 +417,9 @@ startMain = function()
     local CR=Instance.new("Frame")
     CR.Size=UDim2.new(0,100,0,100); CR.AnchorPoint=Vector2.new(0.5,0.5)
     CR.BackgroundTransparency=1; CR.ZIndex=10; CR.Parent=CGui
-
     local cs={shape="crosshair",color=C.wh,size=14,trail=false,enabled=false,rgb=false,pulse=false}
     local sp={}
-    local function clrShape()
+    local function clrS()
         for _,p in ipairs(sp) do pcall(function() p:Destroy() end) end
         sp={}
     end
@@ -458,8 +454,8 @@ startMain = function()
         end
         table.insert(sp,f); return f
     end
-    local function buildShape(sh)
-        clrShape()
+    local function buildS(sh)
+        clrS()
         local s=cs.size; local th=math.max(2,math.floor(s*0.16))
         if sh=="dot" then mkC(s,true)
         elseif sh=="crosshair" then
@@ -514,8 +510,7 @@ startMain = function()
             mkL(th,l,0,0,-45); mkL(th,s*0.3,0,-20)
         end
     end
-    buildShape(cs.shape)
-
+    buildS(cs.shape)
     task.spawn(function()
         while CGui.Parent do
             if cs.enabled then
@@ -556,7 +551,6 @@ startMain = function()
         MW=math.min(750,workspace.CurrentCamera.ViewportSize.X-40)
         MH=math.min(500,workspace.CurrentCamera.ViewportSize.Y-100)
     end
-
     local Main=Instance.new("Frame")
     Main.Size=UDim2.new(0,MW,0,MH); Main.Position=UDim2.new(0.5,-MW/2,0.5,-MH/2)
     Main.BackgroundColor3=C.bg; Main.BorderSizePixel=0
@@ -601,7 +595,7 @@ startMain = function()
 
     local SV=Instance.new("TextLabel")
     SV.Size=UDim2.new(1,-60,0,14); SV.Position=UDim2.new(0,54,0,32)
-    SV.BackgroundTransparency=1; SV.Text="v13 · "..dType
+    SV.BackgroundTransparency=1; SV.Text="v14 · "..dType
     SV.TextColor3=C.dim2; SV.Font=Enum.Font.Gotham; SV.TextSize=9
     SV.TextXAlignment=Enum.TextXAlignment.Left; SV.ZIndex=103; SV.Parent=SBL
 
@@ -626,14 +620,12 @@ startMain = function()
     UF.Size=UDim2.new(1,-20,0,56); UF.Position=UDim2.new(0,10,1,-66)
     UF.BackgroundColor3=C.bg; UF.BorderSizePixel=0; UF.ZIndex=102; UF.Parent=SB
     local UFC=Instance.new("UICorner"); UFC.CornerRadius=UDim.new(0,10); UFC.Parent=UF
-
     local UA=Instance.new("ImageLabel")
     UA.Size=UDim2.new(0,34,0,34); UA.Position=UDim2.new(0,11,0,11)
     UA.BackgroundColor3=C.row; UA.BorderSizePixel=0
     UA.Image="rbxthumb://type=AvatarHeadShot&id="..LP.UserId.."&w=100&h=100"
     UA.ZIndex=103; UA.Parent=UF
     local UAC=Instance.new("UICorner"); UAC.CornerRadius=UDim.new(1,0); UAC.Parent=UA
-
     local UN=Instance.new("TextLabel")
     UN.Size=UDim2.new(1,-55,0,16); UN.Position=UDim2.new(0,52,0,12)
     UN.BackgroundTransparency=1; UN.Text=LP.DisplayName or LP.Name
@@ -658,10 +650,9 @@ startMain = function()
     TTi.BackgroundTransparency=1; TTi.Text="EON VISUAL"
     TTi.TextColor3=C.txt; TTi.Font=Enum.Font.GothamBold; TTi.TextSize=15
     TTi.TextXAlignment=Enum.TextXAlignment.Left; TTi.ZIndex=102; TTi.Parent=TB
-
     local TSb=Instance.new("TextLabel")
     TSb.Size=UDim2.new(0,400,0,14); TSb.Position=UDim2.new(0,20,0,34)
-    TSb.BackgroundTransparency=1; TSb.Text="Premium Roblox Visuals · MEGA"
+    TSb.BackgroundTransparency=1; TSb.Text="Premium Roblox Visuals"
     TSb.TextColor3=C.dim2; TSb.Font=Enum.Font.Gotham; TSb.TextSize=10
     TSb.TextXAlignment=Enum.TextXAlignment.Left; TSb.ZIndex=102; TSb.Parent=TB
 
@@ -672,7 +663,7 @@ startMain = function()
     CB.TextSize=16; CB.AutoButtonColor=false; CB.ZIndex=103; CB.Parent=TB
     local CBC=Instance.new("UICorner"); CBC.CornerRadius=UDim.new(0,8); CBC.Parent=CB
 
-    local drag, ds, sp0 = false,nil,nil
+    local drag,ds,sp0=false,nil,nil
     TB.InputBegan:Connect(function(inp)
         if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
             drag=true; ds=inp.Position; sp0=Main.Position
@@ -808,29 +799,8 @@ startMain = function()
         b.MouseButton1Click:Connect(cb)
     end
 
-    -- HUD
-    local HG=Instance.new("ScreenGui")
-    HG.Name="EonHUD"; HG.ResetOnSpawn=false; HG.IgnoreGuiInset=true
-    HG.DisplayOrder=999989
-    pcall(function() HG.Parent=CG end)
-    if not HG.Parent then HG.Parent=LP:WaitForChild("PlayerGui") end
-
-    local hSt={fps=false,ping=false,clock=false,wm=false,coords=false,speed=false,
-        oVig=false,oRGB=false,oScan=false,oSnow=false,oStar=false,oFly=false}
-
-    local function mkHud(name,pos,txt)
-        local l=Instance.new("TextLabel")
-        l.Name=name; l.Size=UDim2.new(0,200,0,22); l.Position=pos
-        l.BackgroundColor3=Color3.fromRGB(0,0,0); l.BackgroundTransparency=0.5
-        l.BorderSizePixel=0; l.Text=txt; l.TextColor3=C.wh
-        l.Font=Enum.Font.GothamBold; l.TextSize=12
-        l.TextStrokeTransparency=0.5; l.ZIndex=999991; l.Parent=HG
-        local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,4); c.Parent=l
-        return l
-    end
-
-    -- NOTIFY
-    local toasts={}
+    -- Notify
+    local tst={}
     local function notify(text)
         local t=Instance.new("Frame")
         t.Size=UDim2.new(0,260,0,42); t.Position=UDim2.new(1,20,0,20)
@@ -847,10 +817,10 @@ startMain = function()
         l.BackgroundTransparency=1; l.Text=text; l.TextColor3=C.txt
         l.Font=Enum.Font.Gotham; l.TextSize=11
         l.TextXAlignment=Enum.TextXAlignment.Left; l.ZIndex=999999; l.Parent=t
-        for _,o in ipairs(toasts) do
+        for _,o in ipairs(tst) do
             TS:Create(o,TweenInfo.new(0.25),{Position=o.Position+UDim2.new(0,0,0,48)}):Play()
         end
-        table.insert(toasts,t)
+        table.insert(tst,t)
         TS:Create(t,TweenInfo.new(0.35,Enum.EasingStyle.Back),{Position=UDim2.new(1,-280,0,20)}):Play()
         task.delay(2.2,function()
             TS:Create(t,TweenInfo.new(0.3),{Position=UDim2.new(1,20,0,20),BackgroundTransparency=1}):Play()
@@ -859,16 +829,56 @@ startMain = function()
             TS:Create(d,TweenInfo.new(0.3),{BackgroundTransparency=1}):Play()
             task.wait(0.35)
             t:Destroy()
-            for i,x in ipairs(toasts) do if x==t then table.remove(toasts,i) break end end
+            for i,x in ipairs(tst) do if x==t then table.remove(tst,i) break end end
         end)
     end
 
     -- STATE
     local st={sky=nil,weather=nil,
-        fog=false,bloom=false,cc=false,dof=false,blur=false,sunrays=false,rgbF=false,
+        fog=false,bloom=false,ccE=false,dof=false,blur=false,sunrays=false,
         cGlow=false,cRGB=false,cTrail=false,cSpark=false,cFire=false,cFroz=false,
         cLight=false,cHeart=false,cNote=false,cFly=false,cHalo=false,cRain=false,
         head="normal",body="normal",bodyCol=nil}
+
+    -- HUD State + элементы
+    local hSt={
+        fps=false,ping=false,clock=false,wm=false,coords=false,speed=false,
+        oVig=false,oRGB=false,oScan=false
+    }
+    local hEl={} -- храним ссылки на элементы HUD
+
+    -- HUD updater
+    task.spawn(function()
+        while HG.Parent do
+            local ch=LP.Character
+            if ch and ch:FindFirstChild("HumanoidRootPart") then
+                local hrp=ch.HumanoidRootPart
+                if hSt.wm and hEl.wm then
+                    hEl.wm.Text="EON VISUAL v14"
+                end
+                if hSt.fps and hEl.fps then
+                    hEl.fps.Text="FPS: "..math.floor(1/dt or 60)
+                end
+                if hSt.clock and hEl.clock then
+                    hEl.clock.Text=os.date("%H:%M:%S")
+                end
+                if hSt.coords and hEl.coords then
+                    hEl.coords.Text=string.format("X:%.0f Y:%.0f Z:%.0f",hrp.Position.X,hrp.Position.Y,hrp.Position.Z)
+                end
+                if hSt.speed and hEl.speed then
+                    local hum=ch:FindFirstChildOfClass("Humanoid")
+                    if hum then
+                        hEl.speed.Text="Speed: "..math.floor(hum.WalkSpeed)
+                    end
+                end
+                if hSt.ping and hEl.ping then
+                    local ping=math.floor(LP:GetNetworkPing()*1000)
+                    hEl.ping.Text="Ping: "..ping.."ms"
+                end
+            end
+            task.wait(0.2)
+        end
+    end)
 
     local skyList={
         {id="space",k="sky_space"},{id="sunset",k="sky_sunset"},{id="night",k="sky_night"},
@@ -960,10 +970,10 @@ startMain = function()
         if id=="off" then return end
         wFolder=Instance.new("Folder"); wFolder.Name="EonWea"; wFolder.Parent=workspace
         if id=="rain" then
-            for i=1,60 do
+            for i=1,40 do
                 local p=Instance.new("Part")
                 p.Size=Vector3.new(0.05,1.5,0.05)
-                p.Position=Vector3.new(math.random(-50,50),math.random(20,60),math.random(-50,50))
+                p.Position=Vector3.new(math.random(-40,40),math.random(20,50),math.random(-40,40))
                 p.Anchored=true; p.CanCollide=false
                 p.Material=Enum.Material.SmoothPlastic
                 p.Color=Color3.fromRGB(180,200,255); p.Transparency=0.3
@@ -972,17 +982,17 @@ startMain = function()
                     while p.Parent do
                         p.Position=p.Position-Vector3.new(0,1,0)
                         if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-                            if (p.Position-LP.Character.HumanoidRootPart.Position).Magnitude>80 then p:Destroy() break end
+                            if (p.Position-LP.Character.HumanoidRootPart.Position).Magnitude>60 then p:Destroy() break end
                         end
                         task.wait(0.02)
                     end
                 end)
             end
         elseif id=="snow" then
-            for i=1,80 do
+            for i=1,60 do
                 local p=Instance.new("Part")
                 p.Shape=Enum.PartType.Ball; p.Size=Vector3.new(0.3,0.3,0.3)
-                p.Position=Vector3.new(math.random(-50,50),math.random(20,60),math.random(-50,50))
+                p.Position=Vector3.new(math.random(-40,40),math.random(20,50),math.random(-40,40))
                 p.Anchored=true; p.CanCollide=false
                 p.Material=Enum.Material.SmoothPlastic
                 p.Color=Color3.fromRGB(255,255,255); p.Parent=wFolder
@@ -990,7 +1000,7 @@ startMain = function()
                     while p.Parent do
                         p.Position=p.Position-Vector3.new(math.random(-2,2)/10,0.1,math.random(-2,2)/10)
                         if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-                            if (p.Position-LP.Character.HumanoidRootPart.Position).Magnitude>80 then p:Destroy() break end
+                            if (p.Position-LP.Character.HumanoidRootPart.Position).Magnitude>60 then p:Destroy() break end
                         end
                         task.wait(0.05)
                     end
@@ -1049,9 +1059,9 @@ startMain = function()
             f.Parent=hrp
             table.insert(cfx,f)
         end
-        local function mkParticle(tex,rate,speed,life,col,sz)
+        local function mkParticle(tex,rate,sp,life,col,sz)
             local p=Instance.new("ParticleEmitter")
-            p.Texture=tex; p.Rate=rate; p.Speed=NumberRange.new(speed,speed+2)
+            p.Texture=tex; p.Rate=rate; p.Speed=NumberRange.new(sp,sp+2)
             p.Lifetime=NumberRange.new(life,life+1)
             p.Color=ColorSequence.new(col); p.Size=NumberSequence.new(sz)
             p.Parent=hrp
@@ -1101,6 +1111,28 @@ startMain = function()
         end
     end
     LP.CharacterAdded:Connect(function() task.wait(1) applyCFX() end)
+
+    -- HUD element creation
+    local function createHudEl(id, name, pos, txt)
+        if hEl[id] then return end
+        local l=Instance.new("TextLabel")
+        l.Name=name
+        l.Size=UDim2.new(0,200,0,22); l.Position=pos
+        l.BackgroundColor3=Color3.fromRGB(0,0,0); l.BackgroundTransparency=0.5
+        l.BorderSizePixel=0; l.Text=txt; l.TextColor3=C.wh
+        l.Font=Enum.Font.GothamBold; l.TextSize=12
+        l.TextStrokeTransparency=0.5; l.ZIndex=999991; l.Parent=HG
+        local c=Instance.new("UICorner"); c.CornerRadius=UDim.new(0,4); c.Parent=l
+        if id=="wm" then l.TextColor3=C.ac end
+        hEl[id]=l
+    end
+
+    local function removeHudEl(id)
+        if hEl[id] then
+            pcall(function() hEl[id]:Destroy() end)
+            hEl[id]=nil
+        end
+    end
 
     local function fmtD(ts)
         if not ts or ts==0 then return "—" end
@@ -1180,7 +1212,7 @@ startMain = function()
                     return a end},
                 {k="bloom",n="EonBloom",set=function(v) st.bloom=v end,mk=function()
                     local b=Instance.new("BloomEffect"); b.Intensity=1.5; b.Size=32; b.Threshold=0.8; return b end},
-                {k="cc",n="EonCC",set=function(v) st.cc=v end,mk=function()
+                {k="ccE",n="EonCC",set=function(v) st.ccE=v end,mk=function()
                     local c=Instance.new("ColorCorrectionEffect")
                     c.Brightness=0.05; c.Contrast=0.15; c.Saturation=0.25; return c end},
                 {k="dof",n="EonDOF",set=function(v) st.dof=v end,mk=function()
@@ -1245,32 +1277,33 @@ startMain = function()
         elseif act=="screen" then
             mkSec(tr("sHUD"),1)
             local g=mkGrid(2)
-            local hud={
+            local hudList={
                 {k="hFPS",id="fps",name="EonFPS",pos=UDim2.new(0,20,0,50),txt="FPS: 60"},
                 {k="hPing",id="ping",name="EonPing",pos=UDim2.new(0,20,0,80),txt="Ping: 0"},
-                {k="hClock",id="clock",name="EonClock",pos=UDim2.new(1,-180,0,20),txt="00:00"},
-                {k="hWM",id="wm",name="EonWM",pos=UDim2.new(0,20,0,20),txt="EON VISUAL v13"},
-                {k="hCoord",id="coords",name="EonCoords",pos=UDim2.new(0,20,1,-50),txt="X: 0 Y: 0 Z: 0"},
-                {k="hSpeed",id="speed",name="EonSpeed",pos=UDim2.new(0,20,1,-80),txt="Speed: 0"},
+                {k="hClock",id="clock",name="EonClock",pos=UDim2.new(1,-180,0,20),txt="00:00:00"},
+                {k="hWM",id="wm",name="EonWM",pos=UDim2.new(0,20,0,20),txt="EON VISUAL v14"},
+                {k="hCoord",id="coords",name="EonCoords",pos=UDim2.new(0,20,1,-50),txt="X:0 Y:0 Z:0"},
+                {k="hSpeed",id="speed",name="EonSpeed",pos=UDim2.new(0,20,1,-80),txt="Speed: 16"},
             }
-            for i,h in ipairs(hud) do
+            for i,h in ipairs(hudList) do
                 mkTog(g,tr(h.k),hSt[h.id],function(on)
                     hSt[h.id]=on
-                    local ex=HG:FindFirstChild(h.name)
-                    if on and not ex then
-                        local l=mkHud(h.name,h.pos,h.txt)
-                        if h.id=="wm" then l.TextColor3=C.ac end
-                    elseif not on and ex then ex:Destroy() end
+                    if on then
+                        if not hEl[h.id] then
+                            createHudEl(h.id,h.name,h.pos,h.txt)
+                        end
+                    else
+                        removeHudEl(h.id)
+                    end
                     notify(tr(h.k)..": "..(on and "ВКЛ" or "ВЫКЛ"))
                 end,i)
             end
             mkSec(tr("sOv"),20)
             local g2=mkGrid(21)
-            local ov={
+            local ovList={
                 {k="oVig",id="oVig"},{k="oRGB",id="oRGB"},{k="oScan",id="oScan"},
-                {k="oSnow",id="oSnow"},{k="oStar",id="oStar"},{k="oFly",id="oFly"},
             }
-            for i,o in ipairs(ov) do
+            for i,o in ipairs(ovList) do
                 mkTog(g2,tr(o.k),hSt[o.id],function(on)
                     hSt[o.id]=on
                     local ex=HG:FindFirstChild("Ov_"..o.id)
@@ -1298,10 +1331,10 @@ startMain = function()
                             local f=Instance.new("Frame")
                             f.Name="Ov_oScan"; f.Size=UDim2.new(1,0,1,0)
                             f.BackgroundTransparency=1; f.ZIndex=3; f.Parent=HG
-                            for j=0,80 do
+                            for j=0,60 do
                                 local ln=Instance.new("Frame")
                                 ln.Size=UDim2.new(1,0,0,1)
-                                ln.Position=UDim2.new(0,0,j/80,0)
+                                ln.Position=UDim2.new(0,0,j/60,0)
                                 ln.BackgroundColor3=Color3.fromRGB(0,0,0)
                                 ln.BackgroundTransparency=0.85
                                 ln.BorderSizePixel=0; ln.ZIndex=3; ln.Parent=f
@@ -1333,7 +1366,7 @@ startMain = function()
             for i,s in ipairs(shapeList) do
                 mkTog(g1,tr(s.k),cs.shape==s.id,function(on)
                     if on then
-                        cs.shape=s.id; buildShape(s.id)
+                        cs.shape=s.id; buildS(s.id)
                         cs.enabled=true; CGui.Enabled=true
                         UIS.MouseIconEnabled=false
                         notify("Форма: "..tr(s.k))
@@ -1346,7 +1379,7 @@ startMain = function()
             for i,c in ipairs(colorList) do
                 mkTog(g2,tr(c.k),cs.color==c.c,function(on)
                     if on then
-                        cs.color=c.c; cs.rgb=false; buildShape(cs.shape)
+                        cs.color=c.c; cs.rgb=false; buildS(cs.shape)
                         notify("Цвет: "..tr(c.k))
                         render()
                     end
@@ -1354,7 +1387,7 @@ startMain = function()
             end
             mkTog(g2,tr("coRGB"),cs.rgb,function(on)
                 cs.rgb=on
-                if not on then buildShape(cs.shape) end
+                if not on then buildS(cs.shape) end
                 notify("RGB: "..(on and "ВКЛ" or "ВЫКЛ"))
             end,100)
             mkSec(tr("sSi"),60)
@@ -1362,7 +1395,7 @@ startMain = function()
             for i,s in ipairs(sizeList) do
                 mkTog(g3,tr(s.k),cs.size==s.v,function(on)
                     if on then
-                        cs.size=s.v; buildShape(cs.shape)
+                        cs.size=s.v; buildS(cs.shape)
                         notify("Размер: "..tr(s.k))
                         render()
                     end
@@ -1431,7 +1464,7 @@ startMain = function()
                     end
                     local isA=isL or not isExp
                     local card=Instance.new("Frame")
-                    card.Size=UDim2.new(1,-10,0,200)
+                    card.Size=UDim2.new(1,-10,0,160)
                     card.BackgroundColor3=C.row; card.BorderSizePixel=0
                     card.LayoutOrder=ord; card.ZIndex=103; card.Parent=CS
                     ord=ord+1
@@ -1439,11 +1472,6 @@ startMain = function()
                     local csx=Instance.new("UIStroke")
                     csx.Color=isA and (isL and C.warn or C.suc) or C.dan
                     csx.Thickness=1.5; csx.Transparency=0.5; csx.Parent=card
-                    local sbar=Instance.new("Frame")
-                    sbar.Size=UDim2.new(0,4,1,-24); sbar.Position=UDim2.new(0,0,0,12)
-                    sbar.BackgroundColor3=isA and (isL and C.warn or C.suc) or C.dan
-                    sbar.BorderSizePixel=0; sbar.ZIndex=104; sbar.Parent=card
-                    local sbc=Instance.new("UICorner"); sbc.CornerRadius=UDim.new(1,0); sbc.Parent=sbar
                     local pl=Instance.new("TextLabel")
                     pl.Size=UDim2.new(1,-170,0,22); pl.Position=UDim2.new(0,22,0,14)
                     pl.BackgroundTransparency=1; pl.Text=sub.product
@@ -1471,20 +1499,20 @@ startMain = function()
                     kl.TextSize=10; kl.TextXAlignment=Enum.TextXAlignment.Left
                     kl.ZIndex=104; kl.Parent=card
                     local bl=Instance.new("TextLabel")
-                    bl.Size=UDim2.new(1,-40,0,14); bl.Position=UDim2.new(0,22,0,70)
+                    bl.Size=UDim2.new(1,-40,0,14); bl.Position=UDim2.new(0,22,0,66)
                     bl.BackgroundTransparency=1; bl.Text=tr("subB")..": "..fmtD(sub.activatedAt)
                     bl.TextColor3=C.dim; bl.Font=Enum.Font.Gotham
                     bl.TextSize=10; bl.TextXAlignment=Enum.TextXAlignment.Left
                     bl.ZIndex=104; bl.Parent=card
                     local el=Instance.new("TextLabel")
-                    el.Size=UDim2.new(1,-40,0,14); el.Position=UDim2.new(0,22,0,88)
+                    el.Size=UDim2.new(1,-40,0,14); el.Position=UDim2.new(0,22,0,84)
                     el.BackgroundTransparency=1
                     el.Text=tr("subX")..": "..(isL and "∞" or fmtD(sub.expiresAt))
                     el.TextColor3=C.dim; el.Font=Enum.Font.Gotham
                     el.TextSize=10; el.TextXAlignment=Enum.TextXAlignment.Left
                     el.ZIndex=104; el.Parent=card
                     local dl=Instance.new("TextLabel")
-                    dl.Size=UDim2.new(1,-40,0,20); dl.Position=UDim2.new(0,22,0,115)
+                    dl.Size=UDim2.new(1,-40,0,20); dl.Position=UDim2.new(0,22,0,110)
                     dl.BackgroundTransparency=1
                     if isL then
                         dl.Text="∞ "..tr("subF")
@@ -1536,10 +1564,11 @@ startMain = function()
                     if v:IsA("GuiObject") then v:Destroy() end
                 end
                 for k in pairs(hSt) do hSt[k]=false end
+                hEl={}
                 notify(tr("reset"))
                 render()
             end,1)
-            mkSec("EON VISUAL v13 · eon.website",40)
+            mkSec("EON VISUAL v14 · eon.website",40)
         end
     end
 
@@ -1671,8 +1700,8 @@ startMain = function()
     end
 
     task.wait(1)
-    notify("EON VISUAL v13 загружен ✓")
+    notify("EON VISUAL v14 загружен ✓")
     task.wait(0.5)
     doOpen()
-    print("[EON v13] Loaded · "..dType)
+    print("[EON v14] Loaded · "..dType)
 end
